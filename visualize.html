@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualización del Grafo de Neo4j con Neovis.js</title>
+    <script src="https://cdn.jsdelivr.net/npm/vis-network@9.0.2/dist/vis-network.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/neovis.js@1.5.0/dist/neovis.js"></script>
+    <style>
+        #viz {
+            width: 100%;
+            height: 100vh;
+            border: 1px solid lightgray;
+        }
+    </style>
+</head>
+<body>
+    <div id="viz"></div>
+    <script type="text/javascript">
+        var config = {
+            container_id: "viz",
+            server_url: "bolt://localhost:7687", 
+            server_user: "", 
+            server_password: "", 
+            labels: {
+                "Intersection": {
+                    caption: "osmid",
+                    size: "street_count",
+                    font: {
+                        size: 14
+                    }
+                }
+            },
+            relationships: {
+                "ROAD_SEGMENT": {
+                    thickness: "length",
+                    caption: false
+                }
+            },
+            initial_cypher: "MATCH (n)-[r]->(m) RETURN n, r, m LIMIT 5000"
+        };
+
+        var viz = new NeoVis.default(config);
+        viz.render();
+    </script>
+</body>
+</html>
