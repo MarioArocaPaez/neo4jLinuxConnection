@@ -77,11 +77,11 @@ def insert_data(tx, query, rows, batch_size=10000):
 
 # Run our constraints queries and nodes GeoDataFrame import
 with driver.session() as session:
-    session.write_transaction(create_constraints)
-    session.write_transaction(insert_data, node_query, gdf_nodes.drop(columns=['geometry'])) 
+    session.execute_write(create_constraints)
+    session.execute_write(insert_data, node_query, gdf_nodes.drop(columns=['geometry'])) 
 
 # Run our relationships GeoDataFrame import
 with driver.session() as session:
-    session.write_transaction(insert_data, rels_query, gdf_relationships.drop(columns=['geometry'])) 
+    session.execute_write(insert_data, rels_query, gdf_relationships.drop(columns=['geometry'])) 
 
 driver.close()
