@@ -4,10 +4,10 @@ import matplotlib.pyplot as plt
 import matplotlib
 matplotlib.use('TkAgg')
 
-# Conectar a Neo4j
+# Connect to Neo4j
 graph = Graph("bolt://localhost:7687", auth=None)
 
-# Obtener datos de Neo4j utilizando una consulta Cypher
+# Fetch data from Neo4j using a Cypher query
 cypher_query = """
 MATCH (n)-[r]->(m)
 RETURN n, r, m
@@ -15,12 +15,12 @@ LIMIT 1000
 """
 data = graph.run(cypher_query)
 
-# Crear un grafo de networkx
+# Create a networkx graph
 G = nx.MultiDiGraph()
 
-# Añadir nodos y aristas al grafo de networkx
+# Add nodes and edges to the networkx graph
 for record in data:
-    # Utiliza el ID interno de Neo4j si 'name' no está disponible
+    # Use Neo4j's internal ID if 'name' is not available
     n_id = record['n']['name'] if 'name' in record['n'] else record['n'].identity
     m_id = record['m']['name'] if 'name' in record['m'] else record['m'].identity
 
@@ -28,11 +28,12 @@ for record in data:
     G.add_node(m_id, **dict(record['m']))
     G.add_edge(n_id, m_id, **dict(record['r']))
 
-# Dibujar el grafo
-pos = nx.spring_layout(G)  # Usar spring layout para una distribución atractiva
+# Draw the graph
+pos = nx.spring_layout(G)  # Use spring layout for an attractive distribution
 nx.draw(G, pos, with_labels=True, node_color='skyblue', edge_color='gray')
 
-# Mostrar el grafo
-plt.savefig('graph.png')  # Guarda la figura en un archivo llamado 'graph.png'
+# Display the graph
+plt.savefig('graph.png')  # Save the figure in a file named 'graph.png'
+
 
 
