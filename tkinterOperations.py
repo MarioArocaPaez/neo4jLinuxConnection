@@ -1,6 +1,9 @@
-from py2neo import Graph, RelationshipMatcher
+import tkinter as tk
+from tkinter import Spinbox, ttk
 import heapq
+from py2neo import Graph, NodeMatcher, RelationshipMatcher
 from math import radians, cos, sin, asin, sqrt
+import matplotlib.pyplot as plt
 
 # Function to search for nodes connected to a specific street
 def find_street_nodes(graph, street_name):
@@ -119,47 +122,109 @@ def astar(graph, start_id, end_id):
 
     return float('inf'), []
 
-# Main code
-if __name__ == "__main__":
-    # Connect to Neo4j
-    graph = Graph("bolt://localhost:7687", auth=None)
+def get_street_suggestions(graph, partial_street_name):
+    rel_matcher = RelationshipMatcher(graph)
+    # Search for relationships with a name that begins with the partial text
+    relationships = rel_matcher.match(r_type="ROAD_SEGMENT")
+    streets = set()
+    for rel in relationships:
+        name = rel.get('name', '')
+        # Check if name is a list and take the first element, or ignore if it's NaN or an empty list
+        if isinstance(name, list):
+            name = name[0] if name else ''
+        if isinstance(name, str) and name and name.lower().startswith(partial_street_name.lower()):
+            streets.add(name)
+    return list(streets)
 
-    # Call the function with the name of the street
-    street_name = "Avenida de la Reina Mercedes"
-    street_nodes = find_street_nodes(graph, street_name)
+def execute_find_street_nodes():
+    street_name = street_name_var.get()
+    nodes = find_street_nodes(graph, street_name)
+    result_text.delete('1.0', tk.END)
+    result_text.insert(tk.END, f"Nodes connected to '{street_name}':\n")
+    for node_id, location in nodes:
+        result_text.insert(tk.END, f"{node_id}: {location}\n")
 
-    # Print the details of the nodes returned from the function
-    print(f"Nodes connected to '{street_name}':")
-    for node_id, location in street_nodes:
-        print(node_id, location)
-        
-    # Call the function with the name of the street
-    street_name = "Calle Torneo"
-    street_nodes = find_street_nodes(graph, street_name)
-    print("\n")
-
-    # Print the details of the nodes returned from the function
-    print(f"Nodes connected to '{street_name}':")
-    for node_id, location in street_nodes:
-        print(node_id, location)
-    print("\n")
-        
-    # Calculate Dijkstra shortest path
-    start_node_id = 4566  
-    end_node_id = 766  
+def execute_dijkstra():
+    start_node_id = int(start_node_var.get())
+    end_node_id = int(end_node_var.get())
     cost, path = dijkstra(graph, start_node_id, end_node_id)
-    
-    print("Dijkstra shortest path from node", start_node_id, "to node", end_node_id, ":")
-    print("Shortest path cost:", cost)
-    print("Shortest path:", path)
-    print("\n")
-    
-    # Calculate A* shortest path
-    start_node_id = 4566  
-    end_node_id = 766  
+    result_text.delete('1.0', tk.END)
+    result_text.insert(tk.END, f"Dijkstra shortest path from node {start_node_id} to node {end_node_id}:\n")
+    result_text.insert(tk.END, f"Shortest path cost: {cost}\n")
+    result_text.insert(tk.END, f"Shortest path: {path}\n")
+
+def execute_astar():
+    start_node_id = int(start_node_var.get())
+    end_node_id = int(end_node_var.get())
     cost, path = astar(graph, start_node_id, end_node_id)
-        
-    print("A* shortest path from node", start_node_id, "to node", end_node_id, ":")
-    print("Shortest path cost:", cost)
-    print("Shortest path:", path)
-    print("\n")
+    result_text.delete('1.0', tk.END)
+    result_text.insert(tk.END, f"A* shortest path from node {start_node_id} to node {end_node_id}:\n")
+    result_text.insert(tk.END, f"Shortest path cost: {cost}\n")
+    result_text.insert(tk.END, f"Shortest path: {path}\n")
+    
+def draw_graph(graph, path=[]):
+    # Crear una figura y un eje
+    fig, ax = plt.subplots()
+
+    # Dibujar las aristas
+    for rel in graph.relationships.match(r_type="ROAD_SEGMENT"):
+        start_node = graph.nodes.get(rel.start_node.identity)
+        end_node = graph.nodes.get(rel.end_node.identity)
+        start_pos = (start_node['location'].longitude, start_node['location'].latitude)
+        end_pos = (end_node['location'].longitude, end_node['location'].latitude)
+        ax.plot([start_pos[0], end_pos[0]], [start_pos[1], end_pos[1]], 'gray')
+
+    # Dibujar los nodos
+    for node in graph.nodes.match("Intersection"):
+        pos = (node['location'].longitude, node['location'].latitude)
+        ax.plot(pos[0], pos[1], 'bo')
+
+    # Dibujar el camino, si existe
+    if path:
+        for i in range(len(path) - 1):
+            start_node = graph.nodes.get(path[i])
+            end_node = graph.nodes.get(path[i + 1])
+            start_pos = (start_node['location'].longitude, start_node['location'].latitude)
+            end_pos = (end_node['location'].longitude, end_node['location'].latitude)
+            ax.plot([start_pos[0], end_pos[0]], [start_pos[1], end_pos[1]], 'ro-')
+
+    # Mostrar el grafo
+    plt.show()
+
+# Connection to Neo4j
+graph = Graph("bolt://localhost:7687", auth=None)
+
+# Get all the streets for the Spinbox
+all_streets = get_street_suggestions(graph, '')
+
+# Create the main window
+root = tk.Tk()
+root.title("Graph Operations GUI")
+
+# Spinbox to select or enter the street name
+street_name_var = tk.StringVar()
+street_name_spinbox = Spinbox(root, values=all_streets, textvariable=street_name_var, wrap=True)
+street_name_spinbox.pack()
+
+# Button to search for nodes
+search_button = ttk.Button(root, text="Search Node", command=execute_find_street_nodes)
+search_button.pack()
+
+# Input fields for Dijkstra and A*
+start_node_var = tk.StringVar()
+end_node_var = tk.StringVar()
+start_node_entry = ttk.Entry(root, textvariable=start_node_var)
+end_node_entry = ttk.Entry(root, textvariable=end_node_var)
+start_node_entry.pack()
+end_node_entry.pack()
+dijkstra_button = ttk.Button(root, text="Calculate Dijkstra", command=execute_dijkstra)
+dijkstra_button.pack()
+astar_button = ttk.Button(root, text="Calculate A*", command=execute_astar)
+astar_button.pack()
+
+# Text area for results
+result_text = tk.Text(root, height=10, width=50)
+result_text.pack()
+
+# Run the application
+root.mainloop()
