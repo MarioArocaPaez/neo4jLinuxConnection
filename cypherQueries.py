@@ -1,8 +1,13 @@
+# City names
+'''
+MATCH ()-[r:ROAD_SEGMENT]->()
+RETURN DISTINCT r.name
+'''
 # See the whole graph:
 '''
 MATCH (n)
 OPTIONAL MATCH (n)-[r]->(m)
-RETURN n, r, m
+RETURN n, r, m;
 '''
 # View all nodes with the Greeting lable:
 '''
