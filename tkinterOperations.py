@@ -152,6 +152,12 @@ def execute_dijkstra():
     result_text.insert(tk.END, f"Dijkstra shortest path from node {start_node_id} to node {end_node_id}:\n")
     result_text.insert(tk.END, f"Shortest path cost: {cost}\n")
     result_text.insert(tk.END, f"Shortest path: {path}\n")
+    plot_route(graph, path, 'red', 'Dijkstra Path')
+    plt.xlabel('Longitude')
+    plt.ylabel('Latitude')
+    plt.legend()
+    plt.title('Dijkstra Shortest Path')
+    plt.show()
 
 def execute_astar():
     start_node_id = int(start_node_var.get())
@@ -161,35 +167,27 @@ def execute_astar():
     result_text.insert(tk.END, f"A* shortest path from node {start_node_id} to node {end_node_id}:\n")
     result_text.insert(tk.END, f"Shortest path cost: {cost}\n")
     result_text.insert(tk.END, f"Shortest path: {path}\n")
-    
-def draw_graph(graph, path=[]):
-    # Crear una figura y un eje
-    fig, ax = plt.subplots()
-
-    # Dibujar las aristas
-    for rel in graph.relationships.match(r_type="ROAD_SEGMENT"):
-        start_node = graph.nodes.get(rel.start_node.identity)
-        end_node = graph.nodes.get(rel.end_node.identity)
-        start_pos = (start_node['location'].longitude, start_node['location'].latitude)
-        end_pos = (end_node['location'].longitude, end_node['location'].latitude)
-        ax.plot([start_pos[0], end_pos[0]], [start_pos[1], end_pos[1]], 'gray')
-
-    # Dibujar los nodos
-    for node in graph.nodes.match("Intersection"):
-        pos = (node['location'].longitude, node['location'].latitude)
-        ax.plot(pos[0], pos[1], 'bo')
-
-    # Dibujar el camino, si existe
-    if path:
-        for i in range(len(path) - 1):
-            start_node = graph.nodes.get(path[i])
-            end_node = graph.nodes.get(path[i + 1])
-            start_pos = (start_node['location'].longitude, start_node['location'].latitude)
-            end_pos = (end_node['location'].longitude, end_node['location'].latitude)
-            ax.plot([start_pos[0], end_pos[0]], [start_pos[1], end_pos[1]], 'ro-')
-
-    # Mostrar el grafo
+    plot_route(graph, path, 'blue', 'A*')
+    plt.xlabel('Longitude')
+    plt.ylabel('Latitude')
+    plt.legend()
+    plt.title('A* Shortest Path')
     plt.show()
+    
+def plot_route(graph, path, color, label):
+    x_coords = []
+    y_coords = []
+    for node_id in path:
+        node = graph.nodes.get(node_id)
+        x_coords.append(node['location'].longitude)
+        y_coords.append(node['location'].latitude)
+    plt.plot(x_coords, y_coords, color=color, label=label, linewidth=2)
+    # Starting point
+    plt.scatter(x_coords[0], y_coords[0], c='purple', edgecolor='black', label='Start', zorder=5)
+    # Finishing poin
+    plt.scatter(x_coords[-1], y_coords[-1], c='green', edgecolor='black', label='End', zorder=5)
+    # Rest of the route
+    plt.scatter(x_coords[1:-1], y_coords[1:-1], c=color)
 
 # Connection to Neo4j
 graph = Graph("bolt://localhost:7687", auth=None)

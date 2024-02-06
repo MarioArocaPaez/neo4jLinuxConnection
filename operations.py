@@ -189,8 +189,6 @@ if __name__ == "__main__":
     plot_route(graph, astar_path, 'red', 'A* Path')
     plt.xlabel('Longitude')
     plt.ylabel('Latitude')
-    #plt.bar_label('Purple: Starting Node')
-    #plt.bar_label('Green: Finishing Node')
     plt.legend()
     plt.title('Dijkstra (Blue) vs A* (Red) Shortest Path with Neighbors')
     plt.show()
