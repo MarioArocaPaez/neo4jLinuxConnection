@@ -1,6 +1,7 @@
 from py2neo import Graph, RelationshipMatcher
 import heapq
 from math import radians, cos, sin, asin, sqrt
+import matplotlib.pyplot as plt
 
 # Function to search for nodes connected to a specific street
 def find_street_nodes(graph, street_name):
@@ -119,6 +120,22 @@ def astar(graph, start_id, end_id):
 
     return float('inf'), []
 
+def plot_route(graph, path, color, label):
+    x_coords = []
+    y_coords = []
+    for node_id in path:
+        node = graph.nodes.get(node_id)
+        x_coords.append(node['location'].longitude)
+        y_coords.append(node['location'].latitude)
+    plt.plot(x_coords, y_coords, color=color, label=label, linewidth=2)
+    # Starting point
+    plt.scatter(x_coords[0], y_coords[0], c='purple', edgecolor='black', label='Start', zorder=5)
+    # Finishing poin
+    plt.scatter(x_coords[-1], y_coords[-1], c='green', edgecolor='black', label='End', zorder=5)
+    # Rest of the route
+    plt.scatter(x_coords[1:-1], y_coords[1:-1], c=color)
+    
+
 # Main code
 if __name__ == "__main__":
     # Connect to Neo4j
@@ -147,19 +164,33 @@ if __name__ == "__main__":
     # Calculate Dijkstra shortest path
     start_node_id = 4566  
     end_node_id = 766  
-    cost, path = dijkstra(graph, start_node_id, end_node_id)
+    cost, dijkstra_path = dijkstra(graph, start_node_id, end_node_id)
     
     print("Dijkstra shortest path from node", start_node_id, "to node", end_node_id, ":")
-    print("Shortest path cost:", cost)
-    print("Shortest path:", path)
+    print("Shortest path cost:", cost, "meters")
+    print("Shortest path:", dijkstra_path)
     print("\n")
     
     # Calculate A* shortest path
     start_node_id = 4566  
     end_node_id = 766  
-    cost, path = astar(graph, start_node_id, end_node_id)
+    cost, astar_path = astar(graph, start_node_id, end_node_id)
         
     print("A* shortest path from node", start_node_id, "to node", end_node_id, ":")
-    print("Shortest path cost:", cost)
-    print("Shortest path:", path)
+    print("Shortest path cost:", cost, "meters") 
+    print("Shortest path:", astar_path)
     print("\n")
+
+    # Visualization
+    plt.figure(figsize=(10, 6))
+
+    # Plot the paths
+    plot_route(graph, dijkstra_path, 'blue', 'Dijkstra Path')
+    plot_route(graph, astar_path, 'red', 'A* Path')
+    plt.xlabel('Longitude')
+    plt.ylabel('Latitude')
+    #plt.bar_label('Purple: Starting Node')
+    #plt.bar_label('Green: Finishing Node')
+    plt.legend()
+    plt.title('Dijkstra (Blue) vs A* (Red) Shortest Path with Neighbors')
+    plt.show()
