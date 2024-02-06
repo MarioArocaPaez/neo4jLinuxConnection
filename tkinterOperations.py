@@ -183,9 +183,9 @@ def plot_route(graph, path, color, label):
         y_coords.append(node['location'].latitude)
     plt.plot(x_coords, y_coords, color=color, label=label, linewidth=2)
     # Starting point
-    plt.scatter(x_coords[0], y_coords[0], c='purple', edgecolor='black', label='Start', zorder=5)
+    plt.scatter(x_coords[0], y_coords[0], c='yellow', edgecolor='yellow', label='Start', zorder=5)
     # Finishing poin
-    plt.scatter(x_coords[-1], y_coords[-1], c='green', edgecolor='black', label='End', zorder=5)
+    plt.scatter(x_coords[-1], y_coords[-1], c='lime', edgecolor='lime', label='End', zorder=5)
     # Rest of the route
     plt.scatter(x_coords[1:-1], y_coords[1:-1], c=color)
 
