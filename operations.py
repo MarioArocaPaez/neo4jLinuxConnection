@@ -1,3 +1,4 @@
+from collections import deque
 from py2neo import Graph, RelationshipMatcher
 import heapq
 from math import radians, cos, sin, asin, sqrt
@@ -137,7 +138,27 @@ def plot_route(graph, path, color, label):
     plt.scatter(x_coords[-1], y_coords[-1], c='green', edgecolor='black', label='End', zorder=5)
     # Rest of the route
     plt.scatter(x_coords[1:-1], y_coords[1:-1], c=color)
-    
+
+def bfs(graph, start_id, end_id):
+    queue = deque([(start_id, [])])  # Queue: (node_id, path)
+    visited = set()
+
+    while queue:
+        current_node, path = queue.popleft()
+        if current_node == end_id:
+            return len(path), path + [current_node]
+
+        if current_node in visited:
+            continue
+
+        visited.add(current_node)
+        neighbors = graph.relationships.match(nodes=[graph.nodes.get(current_node)], r_type="ROAD_SEGMENT")
+        
+        for rel in neighbors:
+            neighbor = rel.end_node
+            queue.append((neighbor.identity, path + [current_node]))
+
+    return float('inf'), []    
 
 # Main code
 if __name__ == "__main__":
@@ -183,6 +204,16 @@ if __name__ == "__main__":
     print("Shortest path cost:", cost, "meters") 
     print("Shortest path:", astar_path)
     print("\n")
+    
+    # Calculate BFS shortest path
+    start_node_id = 4566  
+    end_node_id = 766  
+    cost, bfs_path = bfs(graph, start_node_id, end_node_id)
+        
+    print("BFS shortest path from node", start_node_id, "to node", end_node_id, ":")
+    print("Shortest path length:", cost)
+    print("Shortest path:", bfs_path)
+    print("\n")
 
     # Visualization
     plt.figure(figsize=(10, 6))
@@ -190,8 +221,9 @@ if __name__ == "__main__":
     # Plot the paths
     plot_route(graph, dijkstra_path, 'blue', 'Dijkstra Path')
     plot_route(graph, astar_path, 'red', 'A* Path')
+    plot_route(graph, bfs_path, 'pink', 'BFS Path')
     plt.xlabel('Longitude')
     plt.ylabel('Latitude')
     plt.legend()
-    plt.title('Dijkstra (Blue) vs A* (Red) Shortest Path with Neighbors')
+    plt.title('Dijkstra (Blue) vs A* (Red) vs BFS (Green)')
     plt.show()
