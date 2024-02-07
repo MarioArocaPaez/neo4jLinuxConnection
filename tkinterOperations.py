@@ -7,25 +7,26 @@ import matplotlib.pyplot as plt
 
 # Function to search for nodes connected to a specific street
 def find_street_nodes(graph, street_name):
-    # Create a RelationshipMatcher
     rel_matcher = RelationshipMatcher(graph)
-
-    # Search for relationships connected to the specified street
     relationships = rel_matcher.match(r_type="ROAD_SEGMENT", name=street_name)
 
-    # Set to store unique node identities
+    # Initialize a set for unique node identities and a list for nodes information
     unique_node_ids = set()
-
-    # Process relationships and add unique nodes to the set
-    for rel in relationships:
-        unique_node_ids.add(rel.start_node.identity)
-
-    # Return the details of unique nodes
     nodes_info = []
-    for node_id in unique_node_ids:
-        node = graph.nodes.get(node_id)
-        nodes_info.append((node.identity, node.get('location', None)))
-    
+
+    node_cache = {}
+
+    for rel in relationships:
+        # Check if start_node is already processed
+        if rel.start_node.identity not in node_cache:
+            # If not in cache, fetch and store it
+            start_node_info = (rel.start_node.identity, rel.start_node.get('location', None))
+            node_cache[rel.start_node.identity] = start_node_info
+            nodes_info.append(start_node_info)
+        else:
+            # If in cache, directly append from cache
+            nodes_info.append(node_cache[rel.start_node.identity])
+            
     return nodes_info
 
 def dijkstra(graph, start_id, end_id):
@@ -153,7 +154,7 @@ def execute_dijkstra():
     cost, path = dijkstra(graph, start_node_id, end_node_id)
     result_text.delete('1.0', tk.END)
     result_text.insert(tk.END, f"Dijkstra shortest path from node {start_node_id} to node {end_node_id}:\n")
-    result_text.insert(tk.END, f"Shortest path cost: {cost}\n")
+    result_text.insert(tk.END, f"Shortest path cost: {cost} meters\n")
     result_text.insert(tk.END, f"Shortest path: {path}\n")
     plot_route(graph, path, 'red', 'Dijkstra Path')
     plt.xlabel('Longitude')
@@ -168,7 +169,7 @@ def execute_astar():
     cost, path = astar(graph, start_node_id, end_node_id)
     result_text.delete('1.0', tk.END)
     result_text.insert(tk.END, f"A* shortest path from node {start_node_id} to node {end_node_id}:\n")
-    result_text.insert(tk.END, f"Shortest path cost: {cost}\n")
+    result_text.insert(tk.END, f"Shortest path cost: {cost} meters\n")
     result_text.insert(tk.END, f"Shortest path: {path}\n")
     plot_route(graph, path, 'blue', 'A*')
     plt.xlabel('Longitude')
