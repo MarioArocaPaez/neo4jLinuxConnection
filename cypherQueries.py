@@ -1,3 +1,10 @@
+# ShortestPath
+'''
+MATCH path=shortestPath((startNode)-[:ROAD_SEGMENT*]->(endNode))
+    WHERE ID(startNode) = 1372 AND ID(endNode) = 1155
+    WITH path, [rel IN relationships(path) | rel.name] AS edgeNames, REDUCE(s = 0, x IN relationships(path) | s + x.length) AS totalDistance
+    RETURN path, edgeNames, totalDistance
+'''
 # See nodes with ids
 '''
 MATCH (n)

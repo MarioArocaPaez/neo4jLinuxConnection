@@ -1,3 +1,4 @@
+from collections import deque
 import tkinter as tk
 from tkinter import Spinbox, ttk
 import heapq
@@ -126,6 +127,27 @@ def astar(graph, start_id, end_id):
 
     return float('inf'), []
 
+def bfs(graph, start_id, end_id):
+    queue = deque([(start_id, 0, [])])  # Queue: (node_id, distance, path)
+    visited = set()
+
+    while queue:
+        current_node, distance, path = queue.popleft()
+        if current_node == end_id:
+            return distance, path + [current_node]
+
+        if current_node in visited:
+            continue
+
+        visited.add(current_node)
+        neighbors = graph.relationships.match(nodes=[graph.nodes.get(current_node)], r_type="ROAD_SEGMENT")
+        
+        for rel in neighbors:
+            neighbor = rel.end_node
+            queue.append((neighbor.identity, distance + rel['length'], path + [current_node]))
+
+    return float('inf'), []
+
 def get_street_suggestions(graph, partial_street_name):
     rel_matcher = RelationshipMatcher(graph)
     # Search for relationships with a name that begins with the partial text
@@ -176,6 +198,21 @@ def execute_astar():
     plt.ylabel('Latitude', fontsize='x-large')
     plt.legend()
     plt.title('A* Shortest Path', fontsize='xx-large')
+    plt.show()
+    
+def execute_bfs():
+    start_node_id = int(start_node_var.get())
+    end_node_id = int(end_node_var.get())
+    cost, path = bfs(graph, start_node_id, end_node_id)
+    result_text.delete('1.0', tk.END)
+    result_text.insert(tk.END, f"BFS shortest path from node {start_node_id} to node {end_node_id}:\n")
+    result_text.insert(tk.END, f"Shortest path cost: {cost} meters\n")
+    result_text.insert(tk.END, f"Shortest path: {path}\n")
+    plot_route(graph, path, 'darkorange', 'BFS')
+    plt.xlabel('Longitude', fontsize='x-large')
+    plt.ylabel('Latitude', fontsize='x-large')
+    plt.legend()
+    plt.title('BFS Shortest Path', fontsize='xx-large')
     plt.show()
     
 def plot_route(graph, path, color, label):
@@ -247,6 +284,8 @@ dijkstra_button = ttk.Button(root, text="Calculate Dijkstra", command=execute_di
 dijkstra_button.pack()
 astar_button = ttk.Button(root, text="Calculate A*", command=execute_astar)
 astar_button.pack()
+bfs_button = ttk.Button(root, text="Calculate BFS", command=execute_bfs)
+bfs_button.pack()
 
 # Text area for results
 result_text = tk.Text(root, height=10, width=50)

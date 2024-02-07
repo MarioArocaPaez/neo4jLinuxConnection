@@ -140,13 +140,13 @@ def plot_route(graph, path, color, label):
     plt.scatter(x_coords[1:-1], y_coords[1:-1], c=color)
 
 def bfs(graph, start_id, end_id):
-    queue = deque([(start_id, [])])  # Queue: (node_id, path)
+    queue = deque([(start_id, 0, [])])  # Queue: (node_id, distance, path)
     visited = set()
 
     while queue:
-        current_node, path = queue.popleft()
+        current_node, distance, path = queue.popleft()
         if current_node == end_id:
-            return len(path), path + [current_node]
+            return distance, path + [current_node]
 
         if current_node in visited:
             continue
@@ -156,9 +156,9 @@ def bfs(graph, start_id, end_id):
         
         for rel in neighbors:
             neighbor = rel.end_node
-            queue.append((neighbor.identity, path + [current_node]))
+            queue.append((neighbor.identity, distance + rel['length'], path + [current_node]))
 
-    return float('inf'), []    
+    return float('inf'), []
 
 # Main code
 if __name__ == "__main__":
