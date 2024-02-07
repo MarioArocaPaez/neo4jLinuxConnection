@@ -181,17 +181,41 @@ def execute_astar():
 def plot_route(graph, path, color, label):
     x_coords = []
     y_coords = []
+    total_distance = 0  # Initialize total distance to 0
+    
+    # Fetch nodes
     for node_id in path:
         node = graph.nodes.get(node_id)
         x_coords.append(node['location'].longitude)
         y_coords.append(node['location'].latitude)
+
+    # Plot the route
     plt.plot(x_coords, y_coords, color=color, label=label, linewidth=2)
     # Starting point
     plt.scatter(x_coords[0], y_coords[0], c='yellow', edgecolor='yellow', label='Start', zorder=5)
-    # Finishing poin
+    # Finishing point
     plt.scatter(x_coords[-1], y_coords[-1], c='lime', edgecolor='lime', label='End', zorder=5)
     # Rest of the route
     plt.scatter(x_coords[1:-1], y_coords[1:-1], c=color)
+
+    # Fetch relationships and annotate the distance
+    for i in range(1, len(path)):
+        start_node = graph.nodes.get(path[i-1])
+        end_node = graph.nodes.get(path[i])
+        rel = graph.relationships.match((start_node, end_node), r_type="ROAD_SEGMENT").first()
+        if rel:
+            distance = rel['length']
+            street_name = rel['name'] if 'name' in rel else ''
+            total_distance += distance
+            # Get the midpoint for the label
+            mid_x = (x_coords[i-1] + x_coords[i]) / 2
+            mid_y = (y_coords[i-1] + y_coords[i]) / 2
+            # Annotate the segment with the distance
+            plt.annotate(f"{street_name}\n{distance:.2f} m", (mid_x, mid_y), textcoords="offset points", xytext=(0,5), ha='center')
+
+    # Annotate the total distance
+    plt.annotate(f"Total distance: {total_distance:.2f} m", (x_coords[-1], y_coords[-1]), textcoords="offset points", xytext=(0,-15), ha='center', fontsize=9, bbox=dict(boxstyle="round,pad=0.3", edgecolor=color, facecolor='white'))
+
 
 # Connection to Neo4j
 graph = Graph("bolt://localhost:7687", auth=None)
