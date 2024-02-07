@@ -157,10 +157,10 @@ def execute_dijkstra():
     result_text.insert(tk.END, f"Shortest path cost: {cost} meters\n")
     result_text.insert(tk.END, f"Shortest path: {path}\n")
     plot_route(graph, path, 'red', 'Dijkstra Path')
-    plt.xlabel('Longitude')
-    plt.ylabel('Latitude')
+    plt.xlabel('Longitude', fontsize='x-large')
+    plt.ylabel('Latitude', fontsize='x-large')
     plt.legend()
-    plt.title('Dijkstra Shortest Path')
+    plt.title('Dijkstra Shortest Path', fontsize='xx-large')
     plt.show()
 
 def execute_astar():
@@ -172,10 +172,10 @@ def execute_astar():
     result_text.insert(tk.END, f"Shortest path cost: {cost} meters\n")
     result_text.insert(tk.END, f"Shortest path: {path}\n")
     plot_route(graph, path, 'blue', 'A*')
-    plt.xlabel('Longitude')
-    plt.ylabel('Latitude')
+    plt.xlabel('Longitude', fontsize='x-large')
+    plt.ylabel('Latitude', fontsize='x-large')
     plt.legend()
-    plt.title('A* Shortest Path')
+    plt.title('A* Shortest Path', fontsize='xx-large')
     plt.show()
     
 def plot_route(graph, path, color, label):
