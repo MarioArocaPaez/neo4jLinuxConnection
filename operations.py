@@ -27,42 +27,45 @@ def find_street_nodes(graph, street_name):
     return nodes_info
 
 def dijkstra(graph, start_id, end_id):
-    # Fetch all nodes and relationships at once to avoid repeated database calls
+    # Fetch all nodes and relationships to build the graph structure
     nodes = list(graph.nodes.match("Intersection"))
     rels = list(graph.relationships.match(r_type="ROAD_SEGMENT"))
-    
-    # Create a mapping from node ID to the node object for quick lookup
-    node_mapping = {node.identity: node for node in nodes}
     
     # Create adjacency list representation of the graph
     adjacency_list = {node.identity: [] for node in nodes}
     for rel in rels:
         adjacency_list[rel.start_node.identity].append((rel.end_node.identity, rel['length']))
     
-    # Priority queue for the Dijkstra algorithm
-    queue = [(0, start_id, ())]  # Cost, node, path
-    visited = set()
+    # Initialize data structures for Dijkstra's algorithm
+    queue = [(0, start_id)]  # Priority queue: (distance, node_id)
     distances = {node_id: float('inf') for node_id in adjacency_list}
     distances[start_id] = 0
+    predecessors = {node_id: None for node_id in adjacency_list}
     
     while queue:
-        (cost, node_id, path) = heapq.heappop(queue)
-        if node_id in visited:
-            continue
-        visited.add(node_id)
-        path += (node_id,)
+        current_distance, current_node = heapq.heappop(queue)
         
-        if node_id == end_id:
-            return cost, path
+        if current_node == end_id:
+            break  # Stop if the target node has been reached
         
-        for neighbor_id, edge_cost in adjacency_list[node_id]:
-            if neighbor_id not in visited:
-                new_cost = cost + edge_cost
-                if new_cost < distances[neighbor_id]:
-                    distances[neighbor_id] = new_cost
-                    heapq.heappush(queue, (new_cost, neighbor_id, path))
-    
-    return float('inf'), ()
+        for neighbor, weight in adjacency_list[current_node]:
+            distance = current_distance + weight
+            if distance < distances[neighbor]:
+                distances[neighbor] = distance
+                predecessors[neighbor] = current_node
+                heapq.heappush(queue, (distance, neighbor))
+                
+    # Reconstruct the shortest path from end_id to start_id
+    path = []
+    current_node = end_id
+    while current_node is not None:
+        path.insert(0, current_node)
+        current_node = predecessors[current_node]
+        
+    if path[0] == start_id:  # Ensure the path is valid
+        return distances[end_id], path
+    else:
+        return float('inf'), []
 
 # Haversine formula to calculate the distance between two points on the Earth's surface
 def haversine(lat1, lon1, lat2, lon2):
