@@ -4,7 +4,7 @@ import osmnx as ox
 # Configuración para una conexión local de Neo4j sin autenticación
 NEO4J_URI = "bolt://localhost:7687"
 
-# Crear un controlador Neo4j sin autenticación
+# Neo4j driver with no auth
 driver = neo4j.GraphDatabase.driver(NEO4J_URI, auth=None)
 
 # Cypher queries to delete all nodes and relationships
