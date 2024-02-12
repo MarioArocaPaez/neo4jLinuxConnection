@@ -1,7 +1,7 @@
 import neo4j
 import osmnx as ox
 
-# Configuración para una conexión local de Neo4j sin autenticación
+# Local bolt connection
 NEO4J_URI = "bolt://localhost:7687"
 
 # Neo4j driver with no auth
