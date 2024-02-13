@@ -11,7 +11,6 @@ graph = Graph("bolt://localhost:7687", auth=None)
 cypher_query = """
 MATCH (n)-[r]->(m)
 RETURN n, r, m
-LIMIT 1000
 """
 data = graph.run(cypher_query)
 
