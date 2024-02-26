@@ -221,9 +221,9 @@ if __name__ == "__main__":
     # Plot the paths
     plot_route(graph, dijkstra_path, 'blue', 'Dijkstra Path')
     plot_route(graph, astar_path, 'red', 'A* Path')
-    plot_route(graph, bfs_path, 'pink', 'BFS Path')
+    plot_route(graph, bfs_path, 'brown', 'BFS Path')
     plt.xlabel('Longitude')
     plt.ylabel('Latitude')
     plt.legend()
-    plt.title('Dijkstra (Blue) vs A* (Red) vs BFS (Green)')
+    plt.title('Dijkstra (Blue) vs A* (Red) vs BFS (Brown)')
     plt.show()

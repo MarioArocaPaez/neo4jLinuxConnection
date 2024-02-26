@@ -2,7 +2,7 @@ from collections import deque
 import tkinter as tk
 from tkinter import Spinbox, ttk
 import heapq
-from py2neo import Graph, NodeMatcher, RelationshipMatcher
+from py2neo import Graph, RelationshipMatcher
 from math import radians, cos, sin, asin, sqrt
 import matplotlib.pyplot as plt
 
@@ -12,7 +12,6 @@ def find_street_nodes(graph, street_name):
     relationships = rel_matcher.match(r_type="ROAD_SEGMENT", name=street_name)
 
     # Initialize a set for unique node identities and a list for nodes information
-    unique_node_ids = set()
     nodes_info = []
 
     node_cache = {}
